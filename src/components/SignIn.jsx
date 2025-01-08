@@ -1,3 +1,5 @@
+// UNUSED
+// This file is not used in the project. It was created to test the Google OAuth2 authentication.
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const clientId = "7388384668-r09pn26637vgi271oddgpbb3guh9i6m3.apps.googleusercontent.com";

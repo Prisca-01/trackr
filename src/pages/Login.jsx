@@ -1,4 +1,3 @@
-// import Header from '../components/Header';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -20,15 +19,13 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
+    // Login logic here
     console.log("Login form submitted", formData);
-    // After successful login, navigate to the dashboard
     navigate("/dashboard");
   };
 
   return (
     <div>
-      {/* <Header /> */}
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <h2 className="text-2xl font-bold mb-4">Trackr</h2>
         <p className="text-gray-700 mt-4">

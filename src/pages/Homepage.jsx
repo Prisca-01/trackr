@@ -1,10 +1,8 @@
 import { Link } from 'react-router-dom';
-// import Header from '../components/Header'; // Ensure this path is correct based on your project structure
 
 const Homepage = () => {
   return (
     <div>
-      {/* <Header /> */}
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Welcome to Trackr</h1>
         <p className="text-lg text-gray-700 mb-8 text-center">Your ultimate productivity tool to track tasks, monitor progress, and boost your efficiency.</p>

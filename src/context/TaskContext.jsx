@@ -1,18 +1,17 @@
-// src/context/TaskContext.jsx
 import { createContext, useState } from 'react';
 import PropTypes  from 'prop-types';
 export const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
-  const [activities, setActivities] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
-  const addActivity = (newActivity) => {
-    setActivities((prevActivities) => [...prevActivities, newActivity]);
+  const addTask = (newTask) => {
+    setTasks((prevTasks) => [...prevTasks, newTask]);
   };
 
   const contextValue = {
-    activities,
-    addActivity,
+    tasks,
+    addTask,
   };
 
   return <TaskContext.Provider value={contextValue}>{children}</TaskContext.Provider>;

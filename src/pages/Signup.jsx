@@ -1,4 +1,3 @@
-// import Header from "../components/Header";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,7 +24,6 @@ const Signup = () => {
     e.preventDefault();
     // Handle signup logic here
     console.log("Signup form submitted", formData);
-    // After successful signup, navigate to the dashboard
     navigate("/dashboard");
   };
 
@@ -33,12 +31,10 @@ const Signup = () => {
     // Handle Google signup flow
     console.log("Initiating Google signup");
     // You can redirect to Google's authentication page or initiate the OAuth flow here
-    // For now, log a message indicating Google signup initiation
   };
 
   return (
     <div>
-      {/* <Header /> */}
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <h2 className="text-2xl font-bold mb-4">Trackr</h2>
         <p className="text-gray-700 mt-3">

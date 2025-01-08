@@ -1,4 +1,3 @@
-// import Header from '../components/Header';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -12,15 +11,12 @@ const ForgotPassword = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate sending an email (for demo purposes)
     console.log('Sending password reset email to:', email);
-    // Show a message or UI indicating that the email has been sent
     setEmailSent(true);
   };
 
   return (
     <div>
-      {/* <Header /> */}
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h2 className="text-2xl font-bold mb-4">Forgot Password?</h2>
       {!emailSent ? (

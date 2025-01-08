@@ -1,202 +1,178 @@
-import { useState, useEffect } from "react";
-import TodoForm from "./TodoForm";
-import EditTodoForm from "./EditTodoForm";
-import { v4 as uuidv4 } from "uuid";
-import Todo from "./Todo";
-import { Link } from "react-router-dom";
-import TaskCalendar from "./Cal";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import Tasks from './Tasks';
+import { useState } from 'react'
 import {
-  faPlus
-} from "@fortawesome/free-solid-svg-icons";
-// import { format, addDays, startOfWeek } from "date-fns";
+  add,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  getDay,
+  isEqual,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  parse,
+  parseISO,
+  startOfToday,
+} from 'date-fns'
 
-uuidv4();
+const tasks = [
+  {
+    id: 1,
+    name: 'Task 1',
+    dueDate: '2024-07-15', // Example due date
+  },
+  {
+    id: 2,
+    name: 'Task 2',
+    dueDate: '2024-07-20', // Example due date
+  },
+  // Add more tasks as needed
+]
 
-const TodoWrapper = () => {
-  const [todos, setTodos] = useState([]);
-//   const { tasks } = useContext(TaskContext);
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
 
-//   const [activities, setActivities] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+export default function TaskCalendar() {
+  let today = startOfToday()
+  let [selectedDay, setSelectedDay] = useState(today)
+  let [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'))
+  let firstDayCurrentMonth = parse(currentMonth, 'MMM-yyyy', new Date())
 
-//   const handleAddActivity = (activity) => {
-//     setActivities([...activities, activity]);
-//   };
-  // Load todos from localStorage on component mount
-  useEffect(() => {
-    const storedTodos = JSON.parse(localStorage.getItem("todos"));
-    if (storedTodos) {
-      setTodos(storedTodos);
-    }
-  }, []);
+  let days = eachDayOfInterval({
+    start: firstDayCurrentMonth,
+    end: endOfMonth(firstDayCurrentMonth),
+  })
 
-  // Save todos to localStorage whenever todos change
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
+  function previousMonth() {
+    let firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 })
+    setCurrentMonth(format(firstDayNextMonth, 'MMM-yyyy'))
+  }
 
-  const addTodo = (todo, date) => {
-    setTodos((prevTodos) => {
-      const newTodos = { ...prevTodos };
-      if (!newTodos[date]) {
-        newTodos[date] = [];
-      }
-      newTodos[date].push({
-        id: uuidv4(),
-        task: todo,
-        completed: false,
-        isEditing: false,
-      });
-      return newTodos;
-    });
-  };
+  function nextMonth() {
+    let firstDayNextMonth = add(firstDayCurrentMonth, { months: 1 })
+    setCurrentMonth(format(firstDayNextMonth, 'MMM-yyyy'))
+  }
 
-  const toggleComplete = (id, date) => {
-    setTodos((prevTodos) => {
-      const newTodos = { ...prevTodos };
-      newTodos[date] = newTodos[date].map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      );
-      return newTodos;
-    });
-  };
-
-  const deleteTodo = (id, date) => {
-    setTodos((prevTodos) => {
-      const newTodos = { ...prevTodos };
-      newTodos[date] = newTodos[date].filter((todo) => todo.id !== id);
-      return newTodos;
-    });
-  };
-
-  const editTodo = (id, date) => {
-    setTodos((prevTodos) => {
-      const newTodos = { ...prevTodos };
-      newTodos[date] = newTodos[date].map((todo) =>
-        todo.id === id ? { ...todo, isEditing: !todo.isEditing } : todo
-      );
-      return newTodos;
-    });
-  };
-
-  const editTask = (task, id, date) => {
-    setTodos((prevTodos) => {
-      const newTodos = { ...prevTodos };
-      newTodos[date] = newTodos[date].map((todo) =>
-        todo.id === id ? { ...todo, task, isEditing: !todo.isEditing } : todo
-      );
-      return newTodos;
-    });
-  };
-
-  
-  //   const calculateWeeklyProgress = () => {
-  //     const startOfWeekDate = startOfWeek(new Date(selectedDate), {
-  //       weekStartsOn: 0,
-  //     });
-  //     const endOfWeekDate = addDays(startOfWeekDate, 6);
-  //     let totalTasks = 0;
-  //     let completedTasks = 0;
-  //     for (
-  //       let date = startOfWeekDate;
-  //       date <= endOfWeekDate;
-  //       date = addDays(date, 1)
-  //     ) {
-  //       const dateString = format(date, "yyyy-MM-dd");
-  //       const tasksForDay = todos[dateString] || [];
-  //       totalTasks += tasksForDay.length;
-  //       completedTasks += tasksForDay.filter((task) => task.completed).length;
-  //     }
-  //     return totalTasks === 0
-  //       ? 0
-  //       : Math.round((completedTasks / totalTasks) * 100);
-  //   };
+  let selectedDayTasks = tasks.filter((task) =>
+    isSameDay(parseISO(task.dueDate), selectedDay)
+  )
 
   return (
-    <div className="TodoWrapper max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-lg">
-      <div className="mt-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Activity</h2>
-          <Link to="/add-activity"> <button
-            type="submit"
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition-colors duration-300"
-          >
-            Add <FontAwesomeIcon icon={faPlus}/>
-          </button></Link>
-        </div>
-      </div>
-      <TaskCalendar setSelectedDate={setSelectedDate} />
-      {/* <div className="task-list">
-        <h2>Tasks</h2>
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <div key={task.id} className="task">
-              <h3>{task.name}</h3>
-              <button>View Details</button>
+    <div className="pt-16">
+      <div className="max-w-md px-4 mx-auto sm:px-7 md:max-w-4xl md:px-6">
+      <div className="md:grid md:grid-cols-2 md:divide-x md:divide-gray-200">
+          <div className="md:pr-14">
+            <div className="flex items-center">
+              <h2 className="flex-auto font-semibold text-gray-900">
+                {format(firstDayCurrentMonth, 'MMMM yyyy')}
+              </h2>
+              <button
+                type="button"
+                onClick={previousMonth}
+                className="-my-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+              >
+                <span className="sr-only">Previous month</span>
+                <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" aria-hidden="true" />
+              </button>
+              <button
+                onClick={nextMonth}
+                type="button"
+                className="-my-1.5 -mr-1.5 ml-2 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+              >
+                <span className="sr-only">Next month</span>
+                <FontAwesomeIcon icon={faChevronRight} className="w-5 h-5" aria-hidden="true" />
+              </button>
             </div>
-          ))
-        ) : (
-          <p>No tasks available.</p>
-        )}
-      </div> */}
-      {/* <AddActivity onAddActivity={handleAddActivity} /> */}
-      {/* <TaskList  /> */}
-      <h1 className="text-2xl font-bold text-center mt-5 mb-4">
-        Get Things Done!
-      </h1>
-      <TodoForm addTodo={addTodo} selectedDate={selectedDate} />
+            <div className="grid grid-cols-7 mt-10 text-xs leading-6 text-center text-gray-500">
+              <div>S</div>
+              <div>M</div>
+              <div>T</div>
+              <div>W</div>
+              <div>T</div>
+              <div>F</div>
+              <div>S</div>
+            </div>
+            <div className="grid grid-cols-7 mt-2 text-sm">
+              {days.map((day, dayIdx) => (
+                <div
+                  key={day.toString()}
+                  className={classNames(
+                    dayIdx === 0 && colStartClasses[getDay(day)],
+                    'py-1.5'
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDay(day)}
+                    className={classNames(
+                      isEqual(day, selectedDay) && 'text-white',
+                      !isEqual(day, selectedDay) &&
+                        isToday(day) &&
+                        'text-red-500',
+                      !isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        isSameMonth(day, firstDayCurrentMonth) &&
+                        'text-gray-900',
+                      !isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        !isSameMonth(day, firstDayCurrentMonth) &&
+                        'text-gray-400',
+                      isEqual(day, selectedDay) && isToday(day) && 'bg-red-500',
+                      isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        'bg-gray-900',
+                      !isEqual(day, selectedDay) && 'hover:bg-gray-200',
+                      (isEqual(day, selectedDay) || isToday(day)) &&
+                        'font-semibold',
+                      'mx-auto flex h-8 w-8 items-center justify-center rounded-full'
+                    )}
+                  >
+                    <time dateTime={format(day, 'yyyy-MM-dd')}>
+                      {format(day, 'd')}
+                    </time>
+                  </button>
 
-      {/* Daily Progress */}
-      {/* <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-4">Daily Progress</h2>
-        <div className="w-full bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-blue-500 h-4 rounded-full"
-            style={{ width: `${calculateDailyProgress()}%` }}
-          ></div>
-        </div>
-        <p className="text-center mt-2">
-          {calculateDailyProgress()}% completed
-        </p>
-      </div> */}
-
-      {/* Weekly Progress */}
-      {/* <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-4">Weekly Progress</h2>
-        <div className="w-full bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-blue-500 h-4 rounded-full"
-            style={{ width: `${calculateWeeklyProgress()}%` }}
-          ></div>
-        </div>
-        <p className="text-center mt-2">
-          {calculateWeeklyProgress()}% completed
-        </p>
-      </div> */}
-
-      {/* Render Todos for Selected Date */}
-      {todos[selectedDate]?.map((todo, index) =>
-        todo.isEditing ? (
-          <EditTodoForm
-            editTodo={(task) => editTask(task, todo.id, selectedDate)}
-            task={todo}
-            key={index}
-          />
-        ) : (
-          <Todo
-            key={index}
-            task={todo}
-            toggleComplete={() => toggleComplete(todo.id, selectedDate)}
-            deleteTodo={() => deleteTodo(todo.id, selectedDate)}
-            editTodo={() => editTodo(todo.id, selectedDate)}
-          />
-        )
-      )}
+                  <div className="w-1 h-1 mx-auto mt-1">
+                    {tasks.some((task) =>
+                      isSameDay(parseISO(task.dueDate), day)
+                    ) && (
+                      <div className="w-1 h-1 rounded-full bg-sky-500"></div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <section className="mt-12 md:mt-0 md:pl-14">
+            <h2 className="font-semibold text-gray-900">
+              Schedule for{' '}
+              <time dateTime={format(selectedDay, 'yyyy-MM-dd')}>
+                {format(selectedDay, 'MMM dd, yyy')}
+              </time>
+            </h2>
+            <ol className="mt-4 space-y-1 text-sm leading-6 text-gray-500">
+              {selectedDayTasks.length > 0 ? (
+                selectedDayTasks.map((task) => (
+                  <Tasks task={task} key={task.id} />
+                ))
+              ) : (
+                <p>No tasks for today.</p>
+              )}
+            </ol>
+          </section>
+        </div>      </div>
     </div>
-  );
-};
-
-export default TodoWrapper;
+  )
+}
+let colStartClasses = [
+    '',
+    'col-start-2',
+    'col-start-3',
+    'col-start-4',
+    'col-start-5',
+    'col-start-6',
+    'col-start-7',
+  ]

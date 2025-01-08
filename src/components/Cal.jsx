@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   format,
   addDays,
@@ -15,12 +15,12 @@ import {
 import { useSwipeable } from "react-swipeable";
 import PropTypes from "prop-types";
 
-const TaskCalendar = ({ todos = {}, setSelectedDate }) => {
+const TaskCalendar = ({ setSelectedDate, filterTasksByDate }) => {
+  const today = useMemo(() => new Date(), []);
   const [currentWeek, setCurrentWeek] = useState(
-    startOfWeek(new Date(), { weekStartsOn: 0 })
+    startOfWeek(today, { weekStartsOn: 0 })
   );
-  const today = new Date();
-  const [selectedDay, setSelectedDay] = useState(today); // Define selectedDate state
+  const [selectedDay, setSelectedDay] = useState(today);
 
   const handlers = useSwipeable({
     onSwipedLeft: () => setCurrentWeek((prev) => addWeeks(prev, 1)),
@@ -39,67 +39,61 @@ const TaskCalendar = ({ todos = {}, setSelectedDate }) => {
     setCurrentWeek(addWeeks(currentWeek, 1));
   };
 
-  const getTasksForDay = (date) => {
-    const dateString = format(date, "yyyy-MM-dd");
-    console.log(`Fetching tasks for date: ${dateString}`); // Log the date being processed
-    console.log(`Todos object:`, todos); // Log the todos object
-    return todos[dateString] || [];
+  const handleDateClick = (day) => {
+    setSelectedDay(day);
+    const formattedDate = format(day, "yyyy-MM-dd");
+    setSelectedDate(formattedDate);
+    filterTasksByDate(formattedDate);
   };
 
-  const handleDateClick = (day) => {
-    const formattedDate = format(day, "yyyy-MM-dd");
-    setSelectedDate(formattedDate); // Call setSelectedDate to pass the selected date to parent component
-    setSelectedDay(day); // Update selectedDate state in TaskCalendar component
-  };
+  useEffect(() => {
+    // When the current week changes, make sure the selected day is still in view
+    if (
+      !isSameDay(selectedDay, today) &&
+      (selectedDay < currentWeek || selectedDay > addDays(currentWeek, 6))
+    ) {
+      setSelectedDay(today);
+      const formattedDate = format(today, "yyyy-MM-dd");
+      setSelectedDate(formattedDate);
+      filterTasksByDate(formattedDate);
+    }
+  }, [
+    currentWeek,
+    selectedDay,
+    today,
+    setSelectedDate,
+    filterTasksByDate,
+  ]);
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-4 md:mb-8">
         <button onClick={handlePreviousWeek} className="p-2">
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
-        <h2 className="text-2xl font-semibold">
-          {selectedDay
-            ? format(selectedDay, "MMMM yyyy")
-            : format(currentWeek, "MMMM yyyy")}
+        <h2 className="text-xl md:text-2xl font-semibold">
+          {format(currentWeek, "MMMM yyyy")}
         </h2>
         <button onClick={handleNextWeek} className="p-2">
           <FontAwesomeIcon icon={faChevronRight} />
         </button>
       </div>
-      <div {...handlers} className="grid grid-cols-7 gap-4">
+      <div {...handlers} className="grid grid-cols-7  md:gap-4">
         {daysOfWeek.map((day) => (
           <div
             key={day}
-            className={`text-center cursor-pointer p-2 rounded mx-auto shadow-xl ${
-              isSameDay(day, today)
-                ? "bg-gray-800 text-white"
-                : "" || isSameDay(day, selectedDay)
-                ? " bg-gray-400"
-                : ""
-            }`}
+            className={`text-center cursor-pointer p-2 rounded mx-auto shadow-md
+              ${isSameDay(day, today) ? "bg-gray-800 text-white" : ""}
+              ${isSameDay(day, selectedDay) ? "bg-gray-400" : ""}
+              ${day.getDay() === 0 ? "col-start-1" : ""}
+              ${day.getDay() === 6 ? "col-end-8" : ""}
+            `}
             onClick={() => handleDateClick(day)}
           >
-            <div className="text-sm font-semibold">{format(day, "EEE")}</div>
-            <div className="text-lg">{format(day, "dd")}</div>
-            {/* <div
-              className={`text-lg rounded-full w-8 h-8 flex items-center justify-center mx-auto ${
-                isSameDay(day, today)
-                  ? "bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto"
-                  : ""
-              } ${
-                isSameDay(day, selectedDay) ? "border border-blue-500" : ""
-              }`}
-            >
-              {format(day, "dd")}
-            </div> */}
-            <div>
-              {getTasksForDay(day).map((task) => (
-                <div key={task.id} className="text-lg">
-                  {task.task}
-                </div>
-              ))}
+            <div className="text-xs md:text-sm font-semibold">
+              {format(day, "EEE")}
             </div>
+            <div className="text-sm md:text-lg">{format(day, "dd")}</div>
           </div>
         ))}
       </div>
@@ -108,8 +102,8 @@ const TaskCalendar = ({ todos = {}, setSelectedDate }) => {
 };
 
 TaskCalendar.propTypes = {
-  todos: PropTypes.object.isRequired,
   setSelectedDate: PropTypes.func.isRequired,
+  filterTasksByDate: PropTypes.func.isRequired,
 };
 
 export default TaskCalendar;
